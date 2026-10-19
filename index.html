@@ -1,0 +1,504 @@
+<!DOCTYPE html><html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIRBIRD - Menú</title><style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(#63ccff, #b8edff 72%, #e1f9ff);
+  color: #000;
+  user-select: none;
+}
+
+#menu {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  padding: 24px 18px 90px;
+}
+
+.cloud {
+  position: absolute;
+  width: 100px;
+  height: 30px;
+  border-radius: 30px;
+  background: rgba(255,255,255,.8);
+  animation: cloudMove 16s linear infinite;
+  pointer-events: none;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+
+.cloud::before {
+  width: 40px;
+  height: 40px;
+  left: 15px;
+  bottom: 5px;
+}
+
+.cloud::after {
+  width: 52px;
+  height: 48px;
+  right: 12px;
+  bottom: 0;
+}
+
+.cloud-one {
+  top: 18%;
+  left: -120px;
+  animation-duration: 23s;
+}
+
+.cloud-two {
+  top: 38%;
+  left: -150px;
+  transform: scale(.75);
+  animation-duration: 30s;
+  animation-delay: -12s;
+}
+
+.cloud-three {
+  top: 63%;
+  left: -140px;
+  transform: scale(1.1);
+  animation-duration: 27s;
+  animation-delay: -7s;
+}
+
+@keyframes cloudMove {
+  from { translate: 0 0; }
+  to { translate: calc(100vw + 300px) 0; }
+}
+
+/* Título */
+
+.title-wrap {
+  position: relative;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: clamp(42px, 11vw, 68px);
+  font-weight: 1000;
+  letter-spacing: 3px;
+  line-height: 1.1;
+  color: #000;
+}
+
+.shine {
+  position: absolute;
+  top: -35%;
+  left: -35%;
+  width: 18px;
+  height: 180%;
+  background: rgba(255,255,255,.8);
+  transform: rotate(25deg);
+  filter: blur(3px);
+  animation: shineMove 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shineMove {
+  0%, 15% { left: -35%; opacity: 0; }
+  25% { opacity: .9; }
+  60% { left: 120%; opacity: 0; }
+  100% { left: 120%; opacity: 0; }
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 5px;
+}
+
+/* Monedas */
+
+.coins {
+  position: absolute;
+  top: 20px;
+  right: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 2px solid #000;
+  border-radius: 22px;
+  background: #ffd83b;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #000;
+}
+
+.coin-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Pájaro */
+
+.bird-area {
+  position: relative;
+  z-index: 1;
+  width: 210px;
+  height: 190px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
+}
+
+#birdCanvas {
+  width: 180px;
+  height: 160px;
+  overflow: visible;
+  animation: birdFloat 2.4s ease-in-out infinite;
+}
+
+@keyframes birdFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-13px) rotate(3deg); }
+}
+
+.bird-shadow {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  width: 65px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.16);
+  transform: translateX(-50%);
+  animation: shadowFloat 2.4s ease-in-out infinite;
+}
+
+@keyframes shadowFloat {
+  0%, 100% { transform: translateX(-50%) scale(1); opacity: .2; }
+  50% { transform: translateX(-50%) scale(.7); opacity: .1; }
+}
+
+/* Botones */
+
+.buttons {
+  z-index: 2;
+  width: min(290px, 88vw);
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: 3px;
+}
+
+.menu-button {
+  position: relative;
+  width: 100%;
+  min-height: 58px;
+  border: 3px solid #000;
+  border-radius: 15px;
+  background: #ffd83b;
+  color: #000;
+  font-size: 21px;
+  font-weight: 1000;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #000;
+  transition: transform .12s, box-shadow .12s;
+}
+
+.menu-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #000;
+}
+
+.secondary {
+  min-height: 49px;
+  font-size: 17px;
+}
+
+.settings-button {
+  position: absolute;
+  top: 18px;
+  left: 16px;
+  z-index: 6;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #000;
+  border-radius: 13px;
+  background: #ffd83b;
+  box-shadow: 0 3px 0 #000;
+  cursor: pointer;
+}
+
+.settings-button:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+
+.settings-button img {
+  display: block;
+  width: 29px;
+  height: 29px;
+  object-fit: contain;
+}
+
+.floor {
+  position: absolute;
+  z-index: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 65px;
+  background: #6bd34d;
+  border-top: 5px solid #398e31;
+}
+
+.floor::before {
+  content: "";
+  position: absolute;
+  inset: 8px 0 auto;
+  height: 8px;
+  background: repeating-linear-gradient(
+    110deg,
+    transparent 0 18px,
+    rgba(30,120,30,.25) 18px 21px,
+    transparent 21px 38px
+  );
+}
+
+.version {
+  position: absolute;
+  bottom: 73px;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: rgba(0,0,0,.55);
+}
+
+@media (max-height: 650px) {
+  #menu { padding-top: 12px; }
+  .title-wrap { margin-top: 5px; }
+  h1 { font-size: 42px; }
+  .bird-area { height: 145px; margin-top: 0; }
+  #birdCanvas { width: 145px; height: 130px; }
+  .buttons { gap: 9px; }
+  .menu-button { min-height: 48px; }
+  .secondary { min-height: 43px; }
+}
+</style></head><body>
+<main id="menu">  <div class="cloud cloud-one"></div>
+  <div class="cloud cloud-two"></div>
+  <div class="cloud cloud-three"></div><button class="settings-button" id="settingsButton"
+aria-label="Ajustes" title="Ajustes">
+<img src="sett.png" alt="Ajustes">
+</button>
+
+  <div class="coins">
+    <img class="coin-icon" src="m.png" alt="Monedas">
+    <span id="coinCount">0</span>
+  </div>  <header class="title-wrap">
+    <h1>AIRBIRD</h1>
+    <div class="shine"></div>
+  </header>  <div class="subtitle">FLY YOUR WAY</div>  <section class="bird-area" aria-label="Tu pájaro">
+    <canvas id="birdCanvas" width="360" height="320"></canvas>
+    <div class="bird-shadow"></div>
+  </section>  <nav class="buttons">
+    <button class="menu-button" id="playButton">JUGAR</button>
+    <button class="menu-button secondary" id="shopButton">TIENDA</button>
+  </nav>  <div class="version">AIRBIRD</div>
+  <div class="floor"></div></main><audio id="buttonSound" src="button.mp3" preload="auto"></audio>
+
+<script>
+"use strict";
+
+const STORAGE = {
+  coins: "airball_monedas",
+  skin: "airball_skin",
+  sounds: "airball_sonidos"
+};
+
+const SKINS = {
+  amarillo: {
+    cuerpo: "#ffd83b",
+    aleta: "#f3a51d",
+    pico: "#ff7b30"
+  },
+  azul: {
+    cuerpo: "#48c8ff",
+    aleta: "#168ad3",
+    pico: "#ff9c36"
+  },
+  rojo: {
+    cuerpo: "#ff5a55",
+    aleta: "#d52c35",
+    pico: "#ffb03b"
+  },
+  verde: {
+    cuerpo: "#70e36b",
+    aleta: "#2cae57",
+    pico: "#ff9c36"
+  },
+  violeta: {
+    cuerpo: "#c18aff",
+    aleta: "#8752cb",
+    pico: "#ff9c36"
+  }
+};
+
+const canvas = document.getElementById("birdCanvas");
+const ctx = canvas.getContext("2d");
+
+function getStorage(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value;
+  } catch {
+    return fallback;
+  }
+}
+
+function getSkinColors() {
+  const skin = getStorage(STORAGE.skin, "amarillo");
+  return SKINS[skin] || SKINS.amarillo;
+}
+
+function drawBird() {
+  const colors = getSkinColors();
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+
+  // El mismo diseño del pájaro utilizado en juego.html.
+  ctx.translate(164, 158);
+  ctx.rotate(-0.06);
+  ctx.scale(3.5, 3.5);
+
+  // Sombra
+  ctx.fillStyle = "rgba(0,0,0,.13)";
+  ctx.beginPath();
+  ctx.ellipse(0, 16, 14, 3.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cuerpo
+  ctx.fillStyle = colors.cuerpo;
+  ctx.strokeStyle = "#65401f";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 16, 13.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Ala
+  ctx.fillStyle = colors.aleta;
+  ctx.beginPath();
+  ctx.ellipse(-5, 4, 7.5, 5, -0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Ojo
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.ellipse(8, -5, 6, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.arc(10, -4.5, 2.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pico
+  ctx.fillStyle = colors.pico;
+  ctx.strokeStyle = "#65401f";
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(14, 1);
+  ctx.lineTo(26, 4.5);
+  ctx.lineTo(14, 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function updateCoins() {
+  const raw = getStorage(STORAGE.coins, "0");
+  const amount = Number(raw);
+  document.getElementById("coinCount").textContent =
+    Number.isFinite(amount) ? Math.max(0, amount).toLocaleString("es-AR") : "0";
+}
+
+function playButtonSound() {
+  const soundSetting = getStorage(STORAGE.sounds, "true");
+
+  if (soundSetting === "false" || soundSetting === "0") return;
+
+  const audio = document.getElementById("buttonSound");
+  if (!audio) return;
+
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+}
+
+function goTo(page) {
+  playButtonSound();
+  setTimeout(() => {
+    window.location.href = page;
+  }, 100);
+}
+
+document.getElementById("playButton").addEventListener("click", () => {
+  goTo("juego.html");
+});
+
+document.getElementById("shopButton").addEventListener("click", () => {
+  goTo("tienda.html");
+});
+
+document.getElementById("settingsButton").addEventListener("click", () => {
+  goTo("ajustes.html");
+});
+
+// Actualizar si se compran monedas o se cambia la skin en otra página.
+window.addEventListener("pageshow", () => {
+  updateCoins();
+  drawBird();
+});
+
+window.addEventListener("storage", () => {
+  updateCoins();
+  drawBird();
+});
+
+updateCoins();
+drawBird();
+</script></body>
+</html>

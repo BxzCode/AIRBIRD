@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIR BIRD - Ajustes</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(#69d5ff, #c5f1ff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #222;
+}
+
+.nube {
+    position: absolute;
+    background: white;
+    width: 120px;
+    height: 38px;
+    border-radius: 40px;
+    opacity: .8;
+}
+
+.nube::before,
+.nube::after {
+    content: "";
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+}
+
+.nube::before {
+    width: 48px;
+    height: 48px;
+    top: -22px;
+    left: 18px;
+}
+
+.nube::after {
+    width: 60px;
+    height: 60px;
+    top: -30px;
+    right: 16px;
+}
+
+.nube1 {
+    top: 12%;
+    left: -20px;
+}
+
+.nube2 {
+    top: 27%;
+    right: -25px;
+    transform: scale(.8);
+}
+
+.nube3 {
+    top: 65%;
+    left: 8%;
+    transform: scale(.65);
+}
+
+.panel {
+    position: relative;
+    z-index: 2;
+    width: min(88%, 390px);
+    padding: 25px 20px;
+    border: 3px solid #222;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .9);
+    text-align: center;
+    box-shadow: 0 7px 0 rgba(0, 0, 0, .2);
+}
+
+h1 {
+    margin: 0 0 25px;
+    color: #ffd83b;
+    font-size: 34px;
+    font-weight: 900;
+}
+
+.opcion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 16px 0;
+    padding: 12px;
+    border: 3px solid #222;
+    border-radius: 13px;
+    background: white;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.interruptor {
+    width: 48px;
+    height: 27px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.interruptor input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.deslizador {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    border: 2px solid #222;
+    border-radius: 20px;
+    background: #aaa;
+    transition: .2s;
+}
+
+.deslizador::before {
+    content: "";
+    position: absolute;
+    width: 19px;
+    height: 19px;
+    left: 2px;
+    bottom: 2px;
+    border: 1px solid #222;
+    border-radius: 50%;
+    background: white;
+    transition: .2s;
+}
+
+.interruptor input:checked + .deslizador {
+    background: #36c95b;
+}
+
+.interruptor input:checked + .deslizador::before {
+    transform: translateX(21px);
+}
+
+button {
+    font-family: inherit;
+    font-weight: 900;
+    cursor: pointer;
+    border: 3px solid #222;
+    border-radius: 12px;
+    padding: 11px 15px;
+    color: #222;
+    background: #ffd83b;
+    box-shadow: 0 4px 0 #222;
+}
+
+button:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #222;
+}
+
+.volver {
+    width: 100%;
+    margin-top: 17px;
+    background: #ff6b55;
+    color: white;
+}
+
+.piso {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 55px;
+    background: #70d64b;
+    border-top: 5px solid #222;
+}
+</style>
+</head>
+
+<body>
+
+<div class="nube nube1"></div>
+<div class="nube nube2"></div>
+<div class="nube nube3"></div>
+
+<main class="panel">
+    <h1>AJUSTES</h1>
+
+    <div class="opcion">
+        <label for="sonidos">Sonidos</label>
+
+        <label class="interruptor">
+            <input type="checkbox" id="sonidos">
+            <span class="deslizador"></span>
+        </label>
+    </div>
+
+    <div class="opcion">
+        <label for="musica">Música</label>
+
+        <label class="interruptor">
+            <input type="checkbox" id="musica">
+            <span class="deslizador"></span>
+        </label>
+    </div>
+
+    <button class="volver" id="volver">VOLVER</button>
+</main>
+
+<div class="piso"></div>
+
+<audio id="sonidoBoton" src="sounds/button.mp3" preload="auto"></audio>
+
+<script>
+const sonidos = document.getElementById("sonidos");
+const musica = document.getElementById("musica");
+const sonidoBoton = document.getElementById("sonidoBoton");
+
+function cargarAjustes() {
+    const sonidosGuardados = localStorage.getItem("airball_sonidos");
+    const musicaGuardada = localStorage.getItem("airball_musica");
+
+    sonidos.checked = sonidosGuardados === null
+        ? true
+        : sonidosGuardados === "true";
+
+    musica.checked = musicaGuardada === null
+        ? true
+        : musicaGuardada === "true";
+}
+
+function reproducirBoton() {
+    if (localStorage.getItem("airball_sonidos") !== "false") {
+        sonidoBoton.currentTime = 0;
+        sonidoBoton.play().catch(() => {});
+    }
+}
+
+sonidos.addEventListener("change", () => {
+    localStorage.setItem("airball_sonidos", sonidos.checked);
+
+    if (sonidos.checked) {
+        reproducirBoton();
+    }
+});
+
+musica.addEventListener("change", () => {
+    localStorage.setItem("airball_musica", musica.checked);
+    reproducirBoton();
+});
+
+document.getElementById("volver").addEventListener("click", () => {
+    reproducirBoton();
+    window.location.href = "index.html";
+});
+
+cargarAjustes();
+</script>
+
+</body>
+</html>

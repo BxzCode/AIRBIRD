@@ -1,0 +1,604 @@
+<!DOCTYPE html><html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIR BIRD - Tienda</title><style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(#69d5ff, #c5f1ff);
+    color: #222;
+    text-align: center;
+}
+
+.nube {
+    position: fixed;
+    background: white;
+    width: 120px;
+    height: 38px;
+    border-radius: 40px;
+    opacity: .8;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.nube::before,
+.nube::after {
+    content: "";
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+}
+
+.nube::before {
+    width: 48px;
+    height: 48px;
+    top: -22px;
+    left: 18px;
+}
+
+.nube::after {
+    width: 60px;
+    height: 60px;
+    top: -30px;
+    right: 16px;
+}
+
+.nube1 { top: 10%; left: -20px; }
+.nube2 { top: 30%; right: -25px; transform: scale(.8); }
+.nube3 { top: 65%; left: 5%; transform: scale(.65); }
+
+header {
+    position: relative;
+    z-index: 1;
+    padding: 20px 12px 10px;
+}
+
+h1 {
+    margin: 0 0 10px;
+    color: #ffd83b;
+    font-size: 38px;
+    font-weight: 900;
+}
+
+.monedas {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: white;
+    border: 3px solid #222;
+    border-radius: 15px;
+    padding: 9px 16px;
+    font-weight: 900;
+    font-size: 19px;
+}
+
+.icono-moneda {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+    display: block;
+}
+
+.contenedor {
+    position: relative;
+    z-index: 1;
+    width: min(94%, 650px);
+    margin: 12px auto 85px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.item {
+    padding: 14px 8px;
+    background: rgba(255, 255, 255, .92);
+    border: 3px solid #222;
+    border-radius: 17px;
+    box-shadow: 0 5px 0 #222;
+    overflow: hidden;
+}
+
+.pajaro {
+    width: 100px;
+    height: 90px;
+    margin: 0 auto 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.pajaro canvas {
+    width: 100px;
+    height: 90px;
+    display: block;
+    overflow: visible;
+    animation: vuelo 1.8s ease-in-out infinite;
+    transform-origin: center;
+}
+
+.item:nth-child(2) .pajaro canvas {
+    animation-delay: -.3s;
+}
+
+.item:nth-child(3) .pajaro canvas {
+    animation-delay: -.6s;
+}
+
+.item:nth-child(4) .pajaro canvas {
+    animation-delay: -.9s;
+}
+
+.item:nth-child(5) .pajaro canvas {
+    animation-delay: -.45s;
+}
+
+@keyframes vuelo {
+    0%, 100% {
+        transform: translateY(0) rotate(-3deg);
+    }
+    50% {
+        transform: translateY(-7px) rotate(3deg);
+    }
+}
+
+.nombre {
+    margin: 5px 0;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.precio {
+    margin: 8px 0;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.icono-precio {
+    width: 19px;
+    height: 19px;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+button {
+    width: 100%;
+    padding: 10px 5px;
+    border: 3px solid #222;
+    border-radius: 11px;
+    background: #ffd83b;
+    color: #222;
+    font-size: 13px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #222;
+}
+
+button:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #222;
+}
+
+button:disabled {
+    background: #aaa;
+    color: #333;
+    cursor: default;
+}
+
+.volver {
+    position: fixed;
+    z-index: 3;
+    bottom: 16px;
+    left: 50%;
+    width: 90%;
+    max-width: 400px;
+    transform: translateX(-50%);
+    background: #ff6b55;
+    color: white;
+    font-size: 16px;
+}
+
+.volver:active {
+    transform: translate(-50%, 2px);
+}
+
+.piso {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 42px;
+    background: #70d64b;
+    border-top: 5px solid #222;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.mensaje {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: max-content;
+    max-width: 90%;
+    background: white;
+    border: 3px solid #222;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-weight: bold;
+    display: none;
+}
+
+@media (max-width: 360px) {
+    .contenedor {
+        gap: 10px;
+    }
+
+    .item {
+        padding: 12px 6px;
+    }
+
+    .nombre {
+        font-size: 15px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pajaro canvas {
+        animation: none;
+    }
+}
+</style></head><body>
+<div class="nube nube1"></div>
+<div class="nube nube2"></div>
+<div class="nube nube3"></div><div class="mensaje" id="mensaje"></div><header>
+    <h1>TIENDA</h1>
+    <div class="monedas">
+        <img class="icono-moneda" src="m.png" alt="Monedas">
+        <span id="monedas">0</span>
+    </div>
+</header><main class="contenedor" id="tienda"></main><button class="volver" id="volver">VOLVER</button>
+
+<div class="piso"></div><audio id="sonidoBoton" src="sounds/button.mp3" preload="auto"></audio>
+
+<script>
+"use strict";
+
+const SKINS = [
+    {
+        id: "amarillo",
+        nombre: "AMARILLO",
+        precio: 0,
+        cuerpo: "#ffd83b",
+        aleta: "#f3a51d",
+        pico: "#ff7b30"
+    },
+    {
+        id: "azul",
+        nombre: "AZUL",
+        precio: 50,
+        cuerpo: "#48c8ff",
+        aleta: "#168ad3",
+        pico: "#ff9c36"
+    },
+    {
+        id: "rojo",
+        nombre: "ROJO",
+        precio: 100,
+        cuerpo: "#ff5a55",
+        aleta: "#d52c35",
+        pico: "#ffb03b"
+    },
+    {
+        id: "verde",
+        nombre: "VERDE",
+        precio: 150,
+        cuerpo: "#70e36b",
+        aleta: "#2cae57",
+        pico: "#ff9c36"
+    },
+    {
+        id: "violeta",
+        nombre: "VIOLETA",
+        precio: 200,
+        cuerpo: "#c18aff",
+        aleta: "#8752cb",
+        pico: "#ff9c36"
+    }
+];
+
+const CLAVE_MONEDAS = "airball_monedas";
+const CLAVE_SKIN = "airball_skin";
+const CLAVE_COMPRADAS = "airball_skins_compradas";
+
+const monedasElemento = document.getElementById("monedas");
+const tienda = document.getElementById("tienda");
+const sonidoBoton = document.getElementById("sonidoBoton");
+
+function obtenerMonedas() {
+    try {
+        const valor = Number(localStorage.getItem(CLAVE_MONEDAS) || 0);
+        return Number.isFinite(valor) ? Math.max(0, valor) : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function obtenerSkin() {
+    try {
+        return localStorage.getItem(CLAVE_SKIN) || "amarillo";
+    } catch {
+        return "amarillo";
+    }
+}
+
+function obtenerCompradas() {
+    try {
+        const guardadas = JSON.parse(
+            localStorage.getItem(CLAVE_COMPRADAS) || '["amarillo"]'
+        );
+
+        return Array.isArray(guardadas)
+            ? [...new Set(["amarillo", ...guardadas])]
+            : ["amarillo"];
+    } catch {
+        return ["amarillo"];
+    }
+}
+
+function guardarCompradas(lista) {
+    try {
+        localStorage.setItem(
+            CLAVE_COMPRADAS,
+            JSON.stringify([...new Set(lista)])
+        );
+    } catch {}
+}
+
+function reproducirBoton() {
+    try {
+        if (localStorage.getItem("airball_sonidos") === "false") return;
+
+        sonidoBoton.currentTime = 0;
+        sonidoBoton.play().catch(() => {});
+    } catch {}
+}
+
+function mostrarMensaje(texto) {
+    const mensaje = document.getElementById("mensaje");
+    mensaje.textContent = texto;
+    mensaje.style.display = "block";
+
+    clearTimeout(mostrarMensaje.temporizador);
+    mostrarMensaje.temporizador = setTimeout(() => {
+        mensaje.style.display = "none";
+    }, 1800);
+}
+
+/* Dibuja el pájaro con la misma forma y proporciones que juego.html. */
+function dibujarPajaro(canvas, skin) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const W = 120;
+    const H = 100;
+    const escala = 2.5;
+
+    canvas.width = W * 2;
+    canvas.height = H * 2;
+
+    ctx.setTransform(2, 0, 0, 2, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.translate(43, 37);
+    ctx.scale(escala, escala);
+
+    /* Sombra del pájaro */
+    ctx.fillStyle = "rgba(0,0,0,.13)";
+    ctx.beginPath();
+    ctx.ellipse(0, 16, 14, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* Cuerpo */
+    ctx.fillStyle = skin.cuerpo;
+    ctx.strokeStyle = "#65401f";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 16, 13.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    /* Ala: se mueve para imitar el aleteo del juego */
+    ctx.fillStyle = skin.aleta;
+    ctx.beginPath();
+    ctx.ellipse(
+        -5,
+        4 + Math.sin(Date.now() * 0.012) * 1.5,
+        7.5,
+        5,
+        -0.25,
+        0,
+        Math.PI * 2
+    );
+    ctx.fill();
+    ctx.stroke();
+
+    /* Ojo */
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.ellipse(8, -5, 6, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#171717";
+    ctx.beginPath();
+    ctx.arc(10, -4.5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    /* Pico */
+    ctx.fillStyle = skin.pico;
+    ctx.strokeStyle = "#65401f";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(14, 1);
+    ctx.lineTo(26, 4.5);
+    ctx.lineTo(14, 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+function actualizarMonedas() {
+    monedasElemento.textContent = obtenerMonedas().toLocaleString("es-AR");
+}
+
+function dibujarTienda() {
+    const monedas = obtenerMonedas();
+    const compradas = obtenerCompradas();
+    const skinActual = obtenerSkin();
+
+    monedasElemento.textContent = monedas.toLocaleString("es-AR");
+    tienda.innerHTML = "";
+
+    SKINS.forEach(skin => {
+        const comprada =
+            compradas.includes(skin.id) || skin.precio === 0;
+        const equipada = skinActual === skin.id;
+
+        const item = document.createElement("section");
+        item.className = "item";
+
+        const areaPajaro = document.createElement("div");
+        areaPajaro.className = "pajaro";
+
+        const canvasPajaro = document.createElement("canvas");
+        canvasPajaro.setAttribute("aria-label", "Pájaro " + skin.nombre);
+        canvasPajaro.setAttribute("role", "img");
+
+        areaPajaro.appendChild(canvasPajaro);
+        dibujarPajaro(canvasPajaro, skin);
+
+        const nombre = document.createElement("div");
+        nombre.className = "nombre";
+        nombre.textContent = skin.nombre;
+
+        const precio = document.createElement("div");
+        precio.className = "precio";
+
+        if (skin.precio === 0) {
+            precio.textContent = "GRATIS";
+        } else {
+            const iconoPrecio = document.createElement("img");
+            iconoPrecio.className = "icono-precio";
+            iconoPrecio.src = "m.png";
+            iconoPrecio.alt = "";
+
+            const textoPrecio = document.createElement("span");
+            textoPrecio.textContent = String(skin.precio);
+
+            precio.append(iconoPrecio, textoPrecio);
+        }
+
+        const boton = document.createElement("button");
+        boton.textContent = equipada
+            ? "EQUIPADA"
+            : comprada
+                ? "EQUIPAR"
+                : "COMPRAR";
+
+        boton.disabled = equipada;
+
+        boton.addEventListener("click", () => {
+            reproducirBoton();
+
+            const lista = obtenerCompradas();
+            const saldo = obtenerMonedas();
+
+            if (lista.includes(skin.id) || skin.precio === 0) {
+                try {
+                    localStorage.setItem(CLAVE_SKIN, skin.id);
+                } catch {}
+
+                if (!lista.includes(skin.id)) {
+                    lista.push(skin.id);
+                    guardarCompradas(lista);
+                }
+
+                mostrarMensaje("¡SKIN EQUIPADA!");
+                dibujarTienda();
+                return;
+            }
+
+            if (saldo < skin.precio) {
+                mostrarMensaje("¡NO TENÉS SUFICIENTES MONEDAS!");
+                return;
+            }
+
+            try {
+                localStorage.setItem(CLAVE_MONEDAS, String(saldo - skin.precio));
+                lista.push(skin.id);
+                guardarCompradas(lista);
+                localStorage.setItem(CLAVE_SKIN, skin.id);
+            } catch {
+                mostrarMensaje("NO SE PUDO GUARDAR LA COMPRA");
+                return;
+            }
+
+            mostrarMensaje("¡SKIN COMPRADA Y EQUIPADA!");
+            dibujarTienda();
+        });
+
+        item.append(areaPajaro, nombre, precio, boton);
+        tienda.appendChild(item);
+    });
+}
+
+/* Mantiene el aleteo animado en todos los pájaros. */
+function animarPajaros() {
+    document.querySelectorAll(".pajaro canvas").forEach(canvas => {
+        const skinId = canvas.closest(".item")
+            ?.querySelector(".nombre")?.textContent;
+
+        const skin = SKINS.find(s => s.nombre === skinId);
+        if (skin) dibujarPajaro(canvas, skin);
+    });
+
+    requestAnimationFrame(animarPajaros);
+}
+
+document.getElementById("volver").addEventListener("click", () => {
+    reproducirBoton();
+    window.location.href = "index.html";
+});
+
+window.addEventListener("pageshow", () => {
+    actualizarMonedas();
+    dibujarTienda();
+});
+
+window.addEventListener("storage", () => {
+    actualizarMonedas();
+    dibujarTienda();
+});
+
+dibujarTienda();
+animarPajaros();
+</script></body>
+</html>
