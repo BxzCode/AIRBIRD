@@ -16,7 +16,9 @@ canvas{display:block;width:100vw;height:100dvh;touch-action:none}
 <canvas id="game"></canvas>
 <script>
 "use strict";
-const canvas=document.getElementById("game"),ctx=canvas.getContext("2d");
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
 const W=360,H=640,GROUND_H=76,groundY=H-GROUND_H;
 let DPR=1;
 
@@ -31,12 +33,30 @@ function resizeCanvas(){
 addEventListener("resize",resizeCanvas);
 resizeCanvas();
 
-const STORAGE={coins:"airball_monedas",best:"airball_mejor_puntaje",skin:"airball_skin",sounds:"airball_sonidos"};
-function readNumber(k,f=0){try{const n=Number(localStorage.getItem(k));return Number.isFinite(n)&&n>=0?n:f}catch{return f}}
-function readString(k,f){try{return localStorage.getItem(k)||f}catch{return f}}
-function save(k,v){try{localStorage.setItem(k,String(v))}catch{}}
+const STORAGE={
+  coins:"airball_monedas",
+  best:"airball_mejor_puntaje",
+  skin:"airball_skin",
+  sounds:"airball_sonidos"
+};
 
-let coins=readNumber(STORAGE.coins),bestScore=readNumber(STORAGE.best),skin=readString(STORAGE.skin,"amarillo"),soundsEnabled=readString(STORAGE.sounds,"true")!=="false";
+function readNumber(k,f=0){
+  try{
+    const n=Number(localStorage.getItem(k));
+    return Number.isFinite(n)&&n>=0?n:f;
+  }catch{return f}
+}
+function readString(k,f){
+  try{return localStorage.getItem(k)||f}catch{return f}
+}
+function save(k,v){
+  try{localStorage.setItem(k,String(v))}catch{}
+}
+
+let coins=readNumber(STORAGE.coins);
+let bestScore=readNumber(STORAGE.best);
+let skin=readString(STORAGE.skin,"amarillo");
+let soundsEnabled=readString(STORAGE.sounds,"true")!=="false";
 
 const SKINS={
   amarillo:{cuerpo:"#ffd83b",aleta:"#f3a51d",pico:"#ff7b30"},
@@ -59,6 +79,7 @@ sonidoChoque.volume=.7;
 let sonidoLluvia=new Audio("L.mp3");
 let sonidoLluviaReserva=new Audio("L.mp3");
 let lluviaCambioProgramado=false;
+
 sonidoLluvia.preload="auto";
 sonidoLluviaReserva.preload="auto";
 sonidoLluvia.loop=false;
@@ -68,20 +89,28 @@ sonidoLluviaReserva.volume=.25;
 
 function prepararSiguienteLluvia(audio){
   audio.addEventListener("timeupdate",()=>{
-    if(audio!==sonidoLluvia||lluviaCambioProgramado||!Number.isFinite(audio.duration)||audio.duration-audio.currentTime>.18)return;
+    if(audio!==sonidoLluvia||lluviaCambioProgramado||
+       !Number.isFinite(audio.duration)||
+       audio.duration-audio.currentTime>.18)return;
+
     lluviaCambioProgramado=true;
-    const anterior=sonidoLluvia,siguiente=sonidoLluviaReserva;
+    const anterior=sonidoLluvia;
+    const siguiente=sonidoLluviaReserva;
     siguiente.currentTime=0;
     siguiente.volume=.25;
+
     siguiente.play().then(()=>{
       anterior.pause();
       anterior.currentTime=0;
       sonidoLluvia=siguiente;
       sonidoLluviaReserva=anterior;
       lluviaCambioProgramado=false;
-    }).catch(()=>{lluviaCambioProgramado=false});
+    }).catch(()=>{
+      lluviaCambioProgramado=false;
+    });
   });
 }
+
 prepararSiguienteLluvia(sonidoLluvia);
 prepararSiguienteLluvia(sonidoLluviaReserva);
 
@@ -100,12 +129,16 @@ function sonidoBoton(){
   try{
     audioCtx ||= new(window.AudioContext||window.webkitAudioContext)();
     if(audioCtx.state==="suspended")audioCtx.resume();
-    const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+
+    const osc=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();
+
     osc.type="sine";
     osc.frequency.setValueAtTime(600,audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(400,audioCtx.currentTime+.06);
     gain.gain.setValueAtTime(.1,audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+.06);
+
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
@@ -121,15 +154,21 @@ const CLIMAS={
 };
 
 const CLIMA_LISTA=Object.keys(CLIMAS);
-let climaActual="NORMAL",climaObjetivo="NORMAL",climaProgreso=1,climaUltimoCambio=Date.now();
+let climaActual="NORMAL";
+let climaObjetivo="NORMAL";
+let climaProgreso=1;
+let climaUltimoCambio=Date.now();
 const CLIMA_INTERVALO=300000;
 let gotasLluvia=[];
 
 let estado="listo";
 function pausado(){return estado==="pausa"}
 
+/* SONIDO DE LLUVIA */
+
 function actualizarSonidoLluvia(){
-  if(climaObjetivo==="LLUVIA"&&soundsEnabled&&!pausado()&&estado!=="fin"){
+  if(climaObjetivo==="LLUVIA"&&soundsEnabled&&
+     !pausado()&&estado!=="fin"){
     if(sonidoLluvia.paused)sonidoLluvia.play().catch(()=>{});
   }else{
     sonidoLluvia.pause();
@@ -153,25 +192,42 @@ function siguienteClima(dir=1){
 
 function cambiarClimaAleatorio(){
   let nuevo;
-  do{nuevo=CLIMA_LISTA[Math.floor(Math.random()*CLIMA_LISTA.length)]}while(nuevo===climaObjetivo);
+  do{
+    nuevo=CLIMA_LISTA[Math.floor(Math.random()*CLIMA_LISTA.length)];
+  }while(nuevo===climaObjetivo);
   elegirClima(nuevo);
 }
 
 function interpolarColor(a,b,t){
-  const ar=parseInt(a.slice(1,3),16),ag=parseInt(a.slice(3,5),16),ab=parseInt(a.slice(5,7),16);
-  const br=parseInt(b.slice(1,3),16),bg=parseInt(b.slice(3,5),16),bb=parseInt(b.slice(5,7),16);
-  return`rgb(${Math.round(ar+(br-ar)*t)},${Math.round(ag+(bg-ag)*t)},${Math.round(ab+(bb-ab)*t)})`;
+  const ar=parseInt(a.slice(1,3),16);
+  const ag=parseInt(a.slice(3,5),16);
+  const ab=parseInt(a.slice(5,7),16);
+  const br=parseInt(b.slice(1,3),16);
+  const bg=parseInt(b.slice(3,5),16);
+  const bb=parseInt(b.slice(5,7),16);
+
+  return `rgb(${Math.round(ar+(br-ar)*t)},${Math.round(ag+(bg-ag)*t)},${Math.round(ab+(bb-ab)*t)})`;
 }
 
 function actualizarClima(){
-  if(Date.now()-climaUltimoCambio>CLIMA_INTERVALO&&climaProgreso>=1)cambiarClimaAleatorio();
+  if(Date.now()-climaUltimoCambio>CLIMA_INTERVALO&&climaProgreso>=1){
+    cambiarClimaAleatorio();
+  }
+
   if(climaProgreso<1){
     climaProgreso=Math.min(1,climaProgreso+.003);
     if(climaProgreso===1)climaActual=climaObjetivo;
   }
+
   if(climaObjetivo==="LLUVIA"&&Math.random()<.4){
-    gotasLluvia.push({x:Math.random()*W,y:-5,v:3+Math.random()*2,l:8+Math.random()*6});
+    gotasLluvia.push({
+      x:Math.random()*W,
+      y:-5,
+      v:3+Math.random()*2,
+      l:8+Math.random()*6
+    });
   }
+
   for(let i=gotasLluvia.length-1;i>=0;i--){
     gotasLluvia[i].y+=gotasLluvia[i].v;
     if(gotasLluvia[i].y>groundY)gotasLluvia.splice(i,1);
@@ -190,7 +246,10 @@ function dibujarLluvia(){
 }
 
 function obtenerCielo(){
-  const a=CLIMAS[climaActual],b=CLIMAS[climaObjetivo],t=climaProgreso;
+  const a=CLIMAS[climaActual];
+  const b=CLIMAS[climaObjetivo];
+  const t=climaProgreso;
+
   return{
     c1:interpolarColor(a.c1,b.c1,t),
     c2:interpolarColor(a.c2,b.c2,t),
@@ -199,14 +258,47 @@ function obtenerCielo(){
   };
 }
 
-const PIPE_W=56,PIPE_GAP=190,PIPE_INTERVALO=275,PIPE_SPEED=2.2,GRAVEDAD=.29,FUERZA_SALTO=-5.6,VELOCIDAD_MAX_CAIDA=6.5;
+/* VELOCIDAD PROGRESIVA */
+
+const PIPE_W=56;
+const PIPE_GAP=190;
+const PIPE_INTERVALO=275;
+const PIPE_SPEED=2.2;
 const PIPE_MOVE_SPEED=1.1;
+const GRAVEDAD=.29;
+const FUERZA_SALTO=-5.6;
+const VELOCIDAD_MAX_CAIDA=6.5;
 
-let puntuacion=0,vidas=3,cuadro=0,desplazamientoSuelo=0,tuberiasPasadas=0;
-let tuberias=[],particulas=[],nubes=[],invulnerable=0;
-let muerteFase="ninguna",muerteTiempo=0,saltitos=0,ojoMareado=0;
+const TUBOS_POR_NIVEL=10;
+const AUMENTO_VELOCIDAD=.3;
+const VELOCIDAD_MAXIMA=5;
 
-const pajaro={x:110,y:270,radio:12,velocidad:0,rotacion:0};
+let velocidadTuberias=PIPE_SPEED;
+let nivelVelocidad=0;
+
+let puntuacion=0;
+let vidas=3;
+let cuadro=0;
+let desplazamientoSuelo=0;
+let tuberiasPasadas=0;
+
+let tuberias=[];
+let particulas=[];
+let nubes=[];
+let invulnerable=0;
+
+let muerteFase="ninguna";
+let muerteTiempo=0;
+let saltitos=0;
+let ojoMareado=0;
+
+const pajaro={
+  x:110,
+  y:270,
+  radio:12,
+  velocidad:0,
+  rotacion:0
+};
 
 function reiniciarPajaro(){
   pajaro.x=110;
@@ -216,7 +308,9 @@ function reiniciarPajaro(){
 }
 
 function crearTuberia(x){
-  const min=80,max=groundY-PIPE_GAP-80;
+  const min=80;
+  const max=groundY-PIPE_GAP-80;
+
   tuberias.push({
     x,
     arriba:min+Math.random()*(max-min),
@@ -238,13 +332,20 @@ function reiniciarJuego(){
   desplazamientoSuelo=0;
   tuberiasPasadas=0;
   invulnerable=0;
+
+  /* Reiniciar la dificultad */
+  nivelVelocidad=0;
+  velocidadTuberias=PIPE_SPEED;
+
   muerteFase="ninguna";
   muerteTiempo=0;
   saltitos=0;
   ojoMareado=0;
+
   reiniciarPajaro();
   crearTuberia(W+100);
   crearTuberia(W+100+PIPE_INTERVALO);
+
   estado="listo";
   actualizarSonidoLluvia();
 }
@@ -252,7 +353,12 @@ function reiniciarJuego(){
 function hacerNubes(){
   nubes=[];
   for(let i=0;i<9;i++){
-    nubes.push({x:Math.random()*W,y:35+Math.random()*300,tamano:.65+Math.random()*.65,velocidad:.2+Math.random()*.28});
+    nubes.push({
+      x:Math.random()*W,
+      y:35+Math.random()*300,
+      tamano:.65+Math.random()*.65,
+      velocidad:.2+Math.random()*.28
+    });
   }
 }
 
@@ -281,7 +387,9 @@ function dibujarNube(x,y,t,c){
 }
 
 function dibujarFondo(){
-  const c=obtenerCielo(),grad=ctx.createLinearGradient(0,0,0,H);
+  const c=obtenerCielo();
+  const grad=ctx.createLinearGradient(0,0,0,H);
+
   grad.addColorStop(0,c.c1);
   grad.addColorStop(1,c.c2);
   ctx.fillStyle=grad;
@@ -297,9 +405,11 @@ function dibujarFondo(){
     ctx.beginPath();
     ctx.arc(W-58,90,26,0,Math.PI*2);
     ctx.fill();
+
     ctx.fillStyle="rgba(255,255,255,.8)";
     for(let i=0;i<25;i++){
-      const sx=(i*97+cuadro*.02)%W,sy=20+(i*43)%220;
+      const sx=(i*97+cuadro*.02)%W;
+      const sy=20+(i*43)%220;
       ctx.beginPath();
       ctx.arc(sx,sy,1+i%3,0,Math.PI*2);
       ctx.fill();
@@ -328,25 +438,36 @@ function dibujarFondo(){
   ctx.closePath();
   ctx.fill();
 
-  const nc=climaObjetivo==="NOCHE"?"rgba(60,70,80,.6)":climaObjetivo==="NUBLADO"||climaObjetivo==="LLUVIA"?"#d0d8e0":"#fff";
+  const nc=climaObjetivo==="NOCHE"
+    ?"rgba(60,70,80,.6)"
+    :climaObjetivo==="NUBLADO"||climaObjetivo==="LLUVIA"
+      ?"#d0d8e0":"#fff";
+
   for(const n of nubes)dibujarNube(n.x,n.y,n.tamano,nc);
   if(climaObjetivo==="LLUVIA")dibujarLluvia();
 }
 
 function dibujarFormaTuberia(x,y,h,arribaInv){
   if(h<=0)return;
-  const borde=21,bordeY=arribaInv?y+h-borde:y,g=ctx.createLinearGradient(x,0,x+PIPE_W,0);
+
+  const borde=21;
+  const bordeY=arribaInv?y+h-borde:y;
+  const g=ctx.createLinearGradient(x,0,x+PIPE_W,0);
+
   g.addColorStop(0,"#15803d");
   g.addColorStop(.25,"#4ade80");
   g.addColorStop(.65,"#22c55e");
   g.addColorStop(1,"#166534");
+
   ctx.fillStyle=g;
   ctx.strokeStyle="#14532d";
   ctx.lineWidth=2;
   ctx.fillRect(x+5,y,PIPE_W-10,h);
   ctx.strokeRect(x+5,y,PIPE_W-10,h);
+
   ctx.fillStyle="rgba(255,255,255,.23)";
   ctx.fillRect(x+12,y,6,h);
+
   ctx.fillStyle="#4ade80";
   ctx.fillRect(x,bordeY,PIPE_W,borde);
   ctx.strokeRect(x,bordeY,PIPE_W,borde);
@@ -361,26 +482,33 @@ function dibujarTuberia(t){
 function dibujarSuelo(){
   ctx.fillStyle="#d5a35a";
   ctx.fillRect(0,groundY,W,GROUND_H);
+
   ctx.fillStyle="#68cf4b";
   ctx.fillRect(0,groundY,W,15);
+
   ctx.fillStyle="#319e3a";
   ctx.fillRect(0,groundY+12,W,4);
+
   ctx.save();
   ctx.beginPath();
   ctx.rect(0,groundY+16,W,GROUND_H-16);
   ctx.clip();
+
   ctx.strokeStyle="#b17e3e";
   ctx.lineWidth=2;
+
   for(let x=-40-desplazamientoSuelo;x<W+40;x+=32){
     ctx.beginPath();
     ctx.moveTo(x,groundY+24);
     ctx.lineTo(x+15,groundY+42);
     ctx.stroke();
+
     ctx.beginPath();
     ctx.moveTo(x+12,groundY+52);
     ctx.lineTo(x+27,groundY+66);
     ctx.stroke();
   }
+
   ctx.restore();
 }
 
@@ -388,10 +516,12 @@ function dibujarPajaro(){
   ctx.save();
   ctx.translate(pajaro.x,pajaro.y);
   ctx.rotate(pajaro.rotacion);
+
   ctx.fillStyle="rgba(0,0,0,.13)";
   ctx.beginPath();
   ctx.ellipse(0,16,14,3.5,0,0,Math.PI*2);
   ctx.fill();
+
   ctx.fillStyle=colores.cuerpo;
   ctx.strokeStyle="#65401f";
   ctx.lineWidth=2;
@@ -399,11 +529,17 @@ function dibujarPajaro(){
   ctx.ellipse(0,0,16,13.5,0,0,Math.PI*2);
   ctx.fill();
   ctx.stroke();
+
   ctx.fillStyle=colores.aleta;
   ctx.beginPath();
-  ctx.ellipse(-5,4+(estado==="jugando"?Math.sin(cuadro*.3)*1.5:0),7.5,5,-.25,0,Math.PI*2);
+  ctx.ellipse(
+    -5,
+    4+(estado==="jugando"?Math.sin(cuadro*.3)*1.5:0),
+    7.5,5,-.25,0,Math.PI*2
+  );
   ctx.fill();
   ctx.stroke();
+
   ctx.fillStyle="#fff";
   ctx.beginPath();
   ctx.ellipse(8,-5,6,7,0,0,Math.PI*2);
@@ -420,8 +556,11 @@ function dibujarPajaro(){
     ctx.lineTo(5,-2);
     ctx.stroke();
   }else{
-    const px=(muerteFase==="saltos"||muerteFase==="caida")?8+Math.cos(ojoMareado)*2.5:10;
-    const py=(muerteFase==="saltos"||muerteFase==="caida")?-5+Math.sin(ojoMareado)*2.5:-4.5;
+    const px=(muerteFase==="saltos"||muerteFase==="caida")
+      ?8+Math.cos(ojoMareado)*2.5:10;
+    const py=(muerteFase==="saltos"||muerteFase==="caida")
+      ?-5+Math.sin(ojoMareado)*2.5:-4.5;
+
     ctx.fillStyle="#171717";
     ctx.beginPath();
     ctx.arc(px,py,2.5,0,Math.PI*2);
@@ -438,12 +577,20 @@ function dibujarPajaro(){
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+
   ctx.restore();
 }
 
 function agregarParticulas(x,y,cantidad=8){
   for(let i=0;i<cantidad;i++){
-    particulas.push({x,y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,tamano:2+Math.random()*3,vida:20+Math.random()*18,color:"#ffb33c"});
+    particulas.push({
+      x,y,
+      vx:(Math.random()-.5)*4,
+      vy:(Math.random()-.5)*4,
+      tamano:2+Math.random()*3,
+      vida:20+Math.random()*18,
+      color:"#ffb33c"
+    });
   }
 }
 
@@ -471,8 +618,15 @@ function dibujarParticulas(){
 function rectRedondeado(x,y,w,h,r,relleno,borde){
   ctx.beginPath();
   ctx.roundRect(x,y,w,h,r);
-  if(relleno){ctx.fillStyle=relleno;ctx.fill()}
-  if(borde){ctx.lineWidth=2;ctx.strokeStyle=borde;ctx.stroke()}
+  if(relleno){
+    ctx.fillStyle=relleno;
+    ctx.fill();
+  }
+  if(borde){
+    ctx.lineWidth=2;
+    ctx.strokeStyle=borde;
+    ctx.stroke();
+  }
 }
 
 function dibujarBoton(x,y,w,h,texto,fondo="#fff",color="#333",borde="#ccc"){
@@ -488,17 +642,28 @@ function dibujarBoton(x,y,w,h,texto,fondo="#fff",color="#333",borde="#ccc"){
 
 function dibujarCorazones(){
   const ix=15,iy=18,w=24,h=20,espacio=6;
+
   for(let i=0;i<3;i++){
-    const perdido=i>=vidas,escala=perdido?.75:1,ww=w*escala,hh=h*escala;
-    const dx=perdido?(w-ww)/2:0,dy=perdido?(h-hh)/2:0,x=ix+i*(w+espacio)+dx,y=iy+dy;
+    const perdido=i>=vidas;
+    const escala=perdido?.75:1;
+    const ww=w*escala,hh=h*escala;
+    const dx=perdido?(w-ww)/2:0;
+    const dy=perdido?(h-hh)/2:0;
+    const x=ix+i*(w+espacio)+dx;
+    const y=iy+dy;
+
     if(heartImg.complete&&heartImg.naturalWidth>0){
       ctx.save();
-      if(perdido){ctx.filter="grayscale(100%)";ctx.globalAlpha=.7}
+      if(perdido){
+        ctx.filter="grayscale(100%)";
+        ctx.globalAlpha=.7;
+      }
       ctx.drawImage(heartImg,x,y,ww,hh);
       ctx.restore();
     }else{
       ctx.fillStyle=perdido?"#888":"#df4050";
       ctx.globalAlpha=perdido?.7:1;
+
       ctx.beginPath();
       const cx=x+ww/2,cy=y+hh/2;
       ctx.moveTo(cx,cy+5*escala);
@@ -512,6 +677,7 @@ function dibujarCorazones(){
 
 function dibujarIconoPausa(){
   const x=W-49,y=13,w=34,h=32;
+
   if(pauseImg.complete&&pauseImg.naturalWidth>0){
     ctx.drawImage(pauseImg,x,y,w,h);
   }else{
@@ -524,16 +690,20 @@ function dibujarIconoPausa(){
 
 function dibujarInterfaz(){
   const x=(W-78)/2;
+
   rectRedondeado(x,10,78,42,9,"rgba(255,255,255,.9)","#fff");
   ctx.textAlign="center";
   ctx.textBaseline="middle";
   ctx.fillStyle="#18465d";
   ctx.font="bold 10px Arial";
   ctx.fillText("PUNTOS",W/2,20);
+
   ctx.font="bold 19px Arial";
   ctx.fillText(String(puntuacion),W/2,38);
+
   dibujarCorazones();
   dibujarIconoPausa();
+
   ctx.font="10px Arial";
   ctx.fillStyle="rgba(0,0,0,.5)";
   ctx.textAlign="left";
@@ -542,72 +712,99 @@ function dibujarInterfaz(){
 
 function dibujarPantallaInicio(){
   const w=245,x=(W-w)/2;
+
   rectRedondeado(x,185,w,82,14,"rgba(255,255,255,.83)","#fff");
   ctx.fillStyle="#164a65";
   ctx.textAlign="center";
   ctx.textBaseline="middle";
   ctx.font="bold 19px Arial";
   ctx.fillText("AIR BIRD",W/2,207);
+
   ctx.font="bold 13px Arial";
   ctx.fillText("CLIC PARA EMPEZAR",W/2,232);
+
   ctx.font="11px Arial";
   ctx.fillText("Tocá para saltar",W/2,251);
 }
 
 function dibujarPausa(){
   const x=(W-280)/2;
+
   rectRedondeado(x,145,280,350,14,"#fff","#ddd");
+
   ctx.fillStyle="#164a65";
   ctx.font="bold 21px Arial";
   ctx.textAlign="center";
   ctx.textBaseline="middle";
   ctx.fillText("PAUSA",W/2,178);
-  dibujarBoton(x+25,203,230,40,soundsEnabled?"SONIDO: ACTIVADO":"SONIDO: DESACTIVADO",soundsEnabled?"#d8f7df":"#eee");
+
+  dibujarBoton(
+    x+25,203,230,40,
+    soundsEnabled?"SONIDO: ACTIVADO":"SONIDO: DESACTIVADO",
+    soundsEnabled?"#d8f7df":"#eee"
+  );
+
   dibujarBoton(x+25,260,230,48,"","#d9f1ff");
+
   ctx.fillStyle="#164a65";
   ctx.font="bold 15px Arial";
   ctx.fillText("CLIMA",W/2,274);
+
   ctx.font="bold 17px Arial";
   ctx.fillText(climaObjetivo,W/2,289);
+
   ctx.font="10px Arial";
   ctx.fillStyle="#47758b";
   ctx.fillText("DESLIZÁ PARA CAMBIAR",W/2,300);
+
   dibujarBoton(x+25,325,230,40,"CONTINUAR","#ffd23f");
   dibujarBoton(x+25,376,230,40,"IR AL MENÚ","#9de7ff");
 }
 
 function dibujarFinJuego(){
   const x=(W-260)/2;
+
   rectRedondeado(x,200,260,206,12,"#fff","#ddd");
   ctx.fillStyle="#164a65";
   ctx.textAlign="center";
   ctx.textBaseline="middle";
   ctx.font="bold 20px Arial";
   ctx.fillText("¡FIN DEL JUEGO!",W/2,240);
+
   ctx.font="14px Arial";
   ctx.fillStyle="#333";
   ctx.fillText("PUNTOS: "+puntuacion,W/2,275);
   ctx.fillText("MEJOR: "+bestScore,W/2,298);
+
   dibujarBoton(x+30,320,200,35,"VOLVER A JUGAR","#ffd23f");
   dibujarBoton(x+30,361,200,35,"IR AL MENÚ","#9de7ff");
 }
 
 function circuloRectangulo(cx,cy,r,rx,ry,w,h){
-  const x=Math.max(rx,Math.min(cx,rx+w)),y=Math.max(ry,Math.min(cy,ry+h));
-  return(cx-x)**2+(cy-y)**2<r*r;
+  const x=Math.max(rx,Math.min(cx,rx+w));
+  const y=Math.max(ry,Math.min(cy,ry+h));
+  return (cx-x)**2+(cy-y)**2<r*r;
 }
 
 function colisionConTuberia(t){
   const abajo=t.arriba+t.hueco;
-  return circuloRectangulo(pajaro.x,pajaro.y,pajaro.radio-2,t.x+4,0,PIPE_W-8,t.arriba)||
-         circuloRectangulo(pajaro.x,pajaro.y,pajaro.radio-2,t.x+4,abajo,PIPE_W-8,groundY-abajo);
+
+  return circuloRectangulo(
+    pajaro.x,pajaro.y,pajaro.radio-2,
+    t.x+4,0,PIPE_W-8,t.arriba
+  )||circuloRectangulo(
+    pajaro.x,pajaro.y,pajaro.radio-2,
+    t.x+4,abajo,PIPE_W-8,groundY-abajo
+  );
 }
 
 function golpearPajaro(){
   if(estado!=="jugando"||invulnerable>0)return;
+
   vidas--;
   reproducirChoque();
   agregarParticulas(pajaro.x,pajaro.y,8);
+
   if(vidas<=0){
     estado="muriendo";
     muerteFase="caida";
@@ -617,18 +814,22 @@ function golpearPajaro(){
     pajaro.velocidad=1;
     return;
   }
+
   invulnerable=45;
   reiniciarPajaro();
 }
 
 function terminarJuego(){
   if(estado==="fin")return;
+
   estado="fin";
   muerteFase="ninguna";
+
   if(puntuacion>bestScore){
     bestScore=puntuacion;
     save(STORAGE.best,bestScore);
   }
+
   coins+=puntuacion;
   save(STORAGE.coins,coins);
   sonidoLluvia.pause();
@@ -637,10 +838,12 @@ function terminarJuego(){
 function actualizarMuerte(){
   muerteTiempo++;
   ojoMareado+=.35;
+
   if(muerteFase==="caida"){
     pajaro.velocidad=Math.min(8,pajaro.velocidad+.32);
     pajaro.y+=pajaro.velocidad;
     pajaro.rotacion=Math.min(1.3,pajaro.rotacion+.045);
+
     if(pajaro.y+pajaro.radio>=groundY){
       pajaro.y=groundY-pajaro.radio;
       muerteFase="saltos";
@@ -651,9 +854,11 @@ function actualizarMuerte(){
   }else if(muerteFase==="saltos"){
     pajaro.velocidad+=.28;
     pajaro.y+=pajaro.velocidad;
+
     if(pajaro.y+pajaro.radio>=groundY){
       pajaro.y=groundY-pajaro.radio;
       saltitos++;
+
       if(saltitos>=3){
         muerteFase="X";
         muerteTiempo=0;
@@ -671,7 +876,9 @@ function saltar(){
     estado="jugando";
     actualizarSonidoLluvia();
   }
+
   if(estado!=="jugando")return;
+
   pajaro.velocidad=FUERZA_SALTO;
   sonidoBoton();
   agregarParticulas(pajaro.x-8,pajaro.y+6,3);
@@ -691,7 +898,11 @@ function alternarPausa(){
 
 function puntoCanvas(e){
   const r=canvas.getBoundingClientRect();
-  return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};
+
+  return{
+    x:(e.clientX-r.left)/r.width*W,
+    y:(e.clientY-r.top)/r.height*H
+  };
 }
 
 let inicioDeslizamientoClima=null;
@@ -723,8 +934,10 @@ function manejarToque(e){
       soundsEnabled=!soundsEnabled;
       save(STORAGE.sounds,String(soundsEnabled));
       sonidoBoton();
+
       if(!soundsEnabled)sonidoLluvia.pause();
       else actualizarSonidoLluvia();
+
       return;
     }
 
@@ -767,77 +980,129 @@ canvas.addEventListener("pointerdown",manejarToque,{passive:false});
 canvas.addEventListener("pointerup",e=>{
   if(!inicioDeslizamientoClima)return;
   if(e.cancelable)e.preventDefault();
-  const fin=puntoCanvas(e),inicio=inicioDeslizamientoClima;
+
+  const fin=puntoCanvas(e);
+  const inicio=inicioDeslizamientoClima;
   inicioDeslizamientoClima=null;
-  const dx=fin.x-inicio.x,dy=fin.y-inicio.y;
+
+  const dx=fin.x-inicio.x;
+  const dy=fin.y-inicio.y;
 
   if(estado==="pausa"&&Math.abs(dx)>=25&&Math.abs(dx)>Math.abs(dy)*1.25){
     siguienteClima(dx<0?1:-1);
   }
 },{passive:false});
 
-canvas.addEventListener("pointercancel",()=>{inicioDeslizamientoClima=null});
+canvas.addEventListener("pointercancel",()=>{
+  inicioDeslizamientoClima=null;
+});
 
 addEventListener("keydown",e=>{
   if(e.code==="Space"||e.code==="ArrowUp"){
     e.preventDefault();
+
     if(estado==="fin"){
       reiniciarJuego();
       return;
     }
+
     if(estado!=="pausa")saltar();
   }
+
   if(e.code==="Escape"||e.code==="KeyP")alternarPausa();
 });
 
 function actualizarTuberiasMovimiento(){
   for(const t of tuberias){
     t.arriba+=t.velocidad*t.direccion;
-    if(t.arriba<=t.minY){t.arriba=t.minY;t.direccion=1}
-    if(t.arriba>=t.maxY){t.arriba=t.maxY;t.direccion=-1}
+
+    if(t.arriba<=t.minY){
+      t.arriba=t.minY;
+      t.direccion=1;
+    }
+
+    if(t.arriba>=t.maxY){
+      t.arriba=t.maxY;
+      t.direccion=-1;
+    }
+  }
+}
+
+/* AUMENTO AUTOMÁTICO DE VELOCIDAD */
+
+function actualizarVelocidad(){
+  const nuevoNivel=Math.floor(tuberiasPasadas/TUBOS_POR_NIVEL);
+
+  if(nuevoNivel>nivelVelocidad){
+    nivelVelocidad=nuevoNivel;
+
+    velocidadTuberias=Math.min(
+      VELOCIDAD_MAXIMA,
+      PIPE_SPEED+nivelVelocidad*AUMENTO_VELOCIDAD
+    );
   }
 }
 
 function actualizar(){
   cuadro++;
   actualizarClima();
+
   if(estado==="pausa"){
     actualizarSonidoLluvia();
     return;
   }
+
   if(estado==="fin")return;
+
   actualizarNubes();
   actualizarParticulas();
+
   if(estado==="muriendo"){
     actualizarMuerte();
     return;
   }
+
   if(estado!=="jugando")return;
+
   if(invulnerable>0)invulnerable--;
-  pajaro.velocidad=Math.min(VELOCIDAD_MAX_CAIDA,pajaro.velocidad+GRAVEDAD);
+
+  pajaro.velocidad=Math.min(
+    VELOCIDAD_MAX_CAIDA,
+    pajaro.velocidad+GRAVEDAD
+  );
+
   pajaro.y+=pajaro.velocidad;
   pajaro.rotacion=Math.max(-.48,Math.min(1,pajaro.velocidad*.075));
-  desplazamientoSuelo=(desplazamientoSuelo+PIPE_SPEED)%32;
+
+  desplazamientoSuelo=(desplazamientoSuelo+velocidadTuberias)%32;
 
   actualizarTuberiasMovimiento();
 
   for(const t of tuberias){
-    t.x-=PIPE_SPEED;
+    t.x-=velocidadTuberias;
+
     if(!t.puntuada&&t.x+PIPE_W<pajaro.x){
       t.puntuada=true;
       puntuacion++;
       tuberiasPasadas++;
+
+      /* Cada 10 tubos aumenta la velocidad */
+      actualizarVelocidad();
+
       sonidoBoton();
       agregarParticulas(pajaro.x,pajaro.y,4);
     }
+
     if(colisionConTuberia(t)){
       golpearPajaro();
       break;
     }
   }
 
-  tuberias=tuberias.filter(t=>t.x+PIPE_W> -5);
+  tuberias=tuberias.filter(t=>t.x+PIPE_W>-5);
+
   const ultima=tuberias[tuberias.length-1];
+
   if(!ultima||ultima.x<W-PIPE_INTERVALO){
     crearTuberia(W+25);
   }
@@ -846,6 +1111,7 @@ function actualizar(){
     pajaro.y=pajaro.radio;
     golpearPajaro();
   }
+
   if(estado==="jugando"&&pajaro.y+pajaro.radio>=groundY){
     pajaro.y=groundY-pajaro.radio;
     golpearPajaro();
@@ -854,12 +1120,18 @@ function actualizar(){
 
 function renderizar(){
   ctx.clearRect(0,0,W,H);
+
   dibujarFondo();
+
   for(const t of tuberias)dibujarTuberia(t);
+
   dibujarSuelo();
   dibujarParticulas();
+
   if(estado!=="fin")dibujarPajaro();
+
   dibujarInterfaz();
+
   if(estado==="listo")dibujarPantallaInicio();
   if(estado==="pausa")dibujarPausa();
   if(estado==="fin")dibujarFinJuego();
@@ -874,6 +1146,7 @@ function bucle(){
 hacerNubes();
 reiniciarJuego();
 bucle();
+
 </script>
 </body>
-</html>
+  </html>
